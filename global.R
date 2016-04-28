@@ -1,24 +1,26 @@
 library(rgdal)
 library(leaflet)
+library(dplyr)
 
-flowlines = readOGR(dsn = "./shapefiles", layer="FlowlinesLatLong")
+
 ibdpm = readOGR(dsn = "./shapefiles", layer = "IBDPMChannelsLatLong")
 nodes = readOGR(dsn = "./shapefiles", layer = "NodesLatLong")
-
-map = leaflet() %>% 
-  addTiles(group = "Map") %>%
-  addProviderTiles("MapQuestOpen.Aerial", group = "Aerial") %>%
-  setView(lng = -121.77, lat = 38.14, zoom = 9) %>%
-  addPolylines(data = flowlines, color = "blue", weight = 4, group = "All DSM2 Channels", popup = ~paste("Channel", channel_nu, "<br>",
-                                                                                                         "Length (km):", round(km, 1))) %>%
-  addPolylines(data = ibdpm, color = "darkred", weight = 4, group = "IB-DPM Channels", popup = ~paste("Channel", channel_nu, "<br>",
-                                                                                                      "Length (km):", round(km, 1))) %>%
-  addCircles(data = nodes, color = "black", radius = 20, group = "DSM2 Nodes", popup = ~paste("Node", NNUM)) %>%
-  addLayersControl(
-    overlayGroups = c("All DSM2 Channels", "IB-DPM Channels", "DSM2 Nodes"),
-    baseGroups = c("Map", "Aerial"),
-    options = layersControlOptions(collapsed = FALSE)
-  )
+flowlines = readOGR(dsn = "./shapefiles", layer="FlowlinesLatLong")
+cll = read.csv("ChannelLatLong.csv")
+# flowlines@data$id = rownames(flowlines@data)
+# all.points = ggplot2::fortify(flowlines, channel_nu = "id")
+# all.df = plyr::join(all.points, flowlines@data, by = "id") %>%
+#   mutate(chan.ord = paste(channel_nu, order, sep = "."))
+# # find approximate midpoint of channel
+# mid = all.df %>%
+#   group_by(channel_nu) %>%
+#   summarise(mid = round(median(order, na.rm = TRUE), 0)) %>%
+#   mutate(chan.ord = paste(channel_nu, mid, sep = "."))
+# # nad = new all.df
+# nad = all.df %>%
+#   filter(chan.ord %in% mid$chan.ord) %>%
+#   select(long, lat, channel_nu)
+# write.csv(nad, "ChannelLatLong.csv", row.names = FALSE)
 
 
 
