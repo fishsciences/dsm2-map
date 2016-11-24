@@ -1,5 +1,4 @@
 library(rgdal)
-library(leaflet)
 library(dplyr)
 
 
@@ -21,6 +20,8 @@ cll = read.csv("ChannelLatLong.csv")
 #   filter(chan.ord %in% mid$chan.ord) %>%
 #   select(long, lat, channel_nu)
 # write.csv(nad, "ChannelLatLong.csv", row.names = FALSE)
+
+# write.csv(select(nodes@data, node = NNUM, x = X, y = Y), "NodeLatLong.csv", row.names = FALSE)
 
 
 

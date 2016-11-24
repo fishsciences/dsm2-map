@@ -1,4 +1,5 @@
 library(shiny)
+library(leaflet)
 
 shinyUI(bootstrapPage(
   title = "DSM2 Map",
