@@ -1,0 +1,44 @@
+library(RJSONIO)
+flowlines = RJSONIO::fromJSON('Flowlines.geojson')
+str(flowlines)
+plot(flowlines)
+flowlines$type
+flowlines$properties
+flowlines[[2]]
+flowlines[[3]]
+str(flowlines)
+flowlines$geometry
+flowlines$geometry$type
+flowlines$coordinates
+flowlines[[3]][1]
+L1 <- Leaflet$new()
+library(rCharts)
+L1 <- Leaflet$new()
+L1$tileLayer(provider = 'Stamen.TonerLite')
+L1$set(width = 800, height = 600)
+L1$setView(c(38.4, -121.77), 9)
+L1$geoJson(toGeoJSON(flowlines), #
+    onEachFeature = '#! function(feature, layer){#
+      layer.bindPopup(feature.properties.popup)#
+    } !#',#
+    pointToLayer =  "#! function(feature, latlng){#
+      return L.polyline(latlng, {#
+      })#
+    } !#")
+test = toGeoJSON(flowlines)
+?toGeoJSON
+??toGeoJSON
+library(leaflet)
+??toGeoJSON
+test = toGeoJSON(flowlines)
+library(leafletR)
+?getProperties
+test = toGeoJSON(data = flowlines)
+data(quakes)
+q.dat <- toGeoJSON(data=quakes[1:99,], dest=tempdir(), name="quakes")
+q.style <- styleGrad(prop="mag", breaks=seq(4, 6.5, by=0.5), #
+  style.val=rev(heat.colors(5)), leg="Richter Magnitude", #
+  fill.alpha=0.7, rad=8)
+q.map <- leaflet(data=q.dat, dest=tempdir(), title="Fiji Earthquakes", #
+  base.map="mqsat", style=q.style, popup="mag")
+browseURL(q.map)
