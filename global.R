@@ -1,9 +1,11 @@
+library(shiny)
+library(shinyWidgets)
+library(leaflet)
 library(rgdal)
 library(dplyr)
 
-
-ibdpm = readOGR(dsn = "./shapefiles", layer = "IBDPMChannelsLatLong")
 nodes = readOGR(dsn = "./shapefiles", layer = "NodesLatLong")
+nll = nodes@data %>% rename(lon = X, lat = Y)
 flowlines = readOGR(dsn = "./shapefiles", layer="FlowlinesLatLong")
 cll = read.csv("ChannelLatLong.csv")
 # flowlines@data$id = rownames(flowlines@data)
@@ -21,7 +23,6 @@ cll = read.csv("ChannelLatLong.csv")
 #   select(long, lat, channel_nu)
 # write.csv(nad, "ChannelLatLong.csv", row.names = FALSE)
 
-# write.csv(select(nodes@data, node = NNUM, x = X, y = Y), "NodeLatLong.csv", row.names = FALSE)
 
 
 
