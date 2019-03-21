@@ -13,10 +13,13 @@ shinyUI(
                                             "WorldTopoMap" = "Esri.WorldTopoMap",
                                             "WorldImagery" = "Esri.WorldImagery"),
                                 selected = "Esri.WorldTopoMap"),
+                    pickerInput(inputId = "selected_node", label = "Selected node", 
+                                choices = c("", sort(nll$NNUM)), selected = "", options = list(`live-search` = TRUE, size = 10)),
                     pickerInput(inputId = "selected_channel", label = "Selected channel", 
                                 choices = c("", sort(cll$channel_nu)), selected = "", options = list(`live-search` = TRUE, size = 10)),
-                    pickerInput(inputId = "selected_node", label = "Selected node", 
-                                choices = c("", sort(nll$NNUM)), selected = "", options = list(`live-search` = TRUE, size = 10))
+                    textOutput("upNode"),
+                    textOutput("downNode")
+
                   )
     )
   )

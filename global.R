@@ -4,6 +4,7 @@ library(leaflet)
 library(rgdal)
 library(dplyr)
 
+channel_df = read.csv("ChannelInfo.csv")
 nodes = readOGR(dsn = "./shapefiles", layer = "NodesLatLong")
 nll = nodes@data %>% rename(lon = X, lat = Y)
 flowlines = readOGR(dsn = "./shapefiles", layer="FlowlinesLatLong")

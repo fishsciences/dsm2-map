@@ -1,5 +1,21 @@
 shinyServer(function(input, output, session) {
   
+  selChannelNodes <- reactive({
+    req(input$selected_channel)
+    d = filter(channel_df, chan_no == input$selected_channel)
+    c("up" = d[["upnode"]], "down" = d[["downnode"]])
+  })
+  
+  # toyed around with the idea of adding labels to map to indicate up and down nodes (rather than displaying text in the panel)
+  # but didn't want to deal with complication of another level of groups and layers
+  output$upNode <- renderText({
+    paste("Upstream node:", selChannelNodes()[["up"]])
+  })
+  
+  output$downNode <- renderText({
+    paste("Downstream node:", selChannelNodes()[["down"]])
+  })
+  
   output$Map = renderLeaflet({
     leaflet() %>%
       setView(lng = -121.56, lat = 38.15, zoom = 10)
@@ -44,7 +60,6 @@ shinyServer(function(input, output, session) {
                group = "nodes",
                layerId = "SelectedNode")
   }
-  
   
   # update the location selectInput on map clicks
   observeEvent(input$Map_shape_click, {

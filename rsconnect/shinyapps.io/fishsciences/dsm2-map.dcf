@@ -1,9 +1,0 @@
-name: dsm2-map
-title:
-account: fishsciences
-server: shinyapps.io
-hostUrl: https://api.shinyapps.io/v1
-appId: 67662
-bundleId: 1480269
-url: https://fishsciences.shinyapps.io/dsm2-map/
-when: 1531548035.9254
