@@ -9,6 +9,8 @@ nodes = readOGR(dsn = "./shapefiles", layer = "NodesLatLong")
 nll = nodes@data %>% rename(lon = X, lat = Y)
 flowlines = readOGR(dsn = "./shapefiles", layer="FlowlinesLatLong")
 cll = read.csv("ChannelLatLong.csv")
+
+# # Code below only needs to be run if shapefiles change
 # flowlines@data$id = rownames(flowlines@data)
 # all.points = ggplot2::fortify(flowlines, channel_nu = "id")
 # all.df = plyr::join(all.points, flowlines@data, by = "id") %>%
@@ -24,6 +26,33 @@ cll = read.csv("ChannelLatLong.csv")
 #   select(long, lat, channel_nu)
 # write.csv(nad, "ChannelLatLong.csv", row.names = FALSE)
 
-
+# function to highlight selected channel or node
+mark_selected <- function(map, group_name, layer_id, upnode = NULL){
+  if (group_name == "channels"){
+    addPolylines(map,
+                 data = subset(flowlines, channel_nu == layer_id),
+                 color = "#FDE725FF",
+                 weight = 8,
+                 opacity = 0.95,
+                 group = group_name,
+                 layerId = "SelectedChannel") %>% 
+      addCircles(data = subset(nodes, NNUM == upnode),
+                 color = "red",
+                 radius = 80,
+                 opacity = 0.95,
+                 fillOpacity = 0.95,
+                 group = group_name,
+                 layerId = "UpNode")
+  }else{
+    addCircles(map,
+               data = subset(nodes, NNUM == layer_id),
+               color = "#FDE725FF",
+               radius = 80,
+               opacity = 0.95,
+               fillOpacity = 0.95,
+               group = group_name,
+               layerId = "SelectedNode")
+  }
+}
 
 

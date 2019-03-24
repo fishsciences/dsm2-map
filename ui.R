@@ -1,4 +1,3 @@
-
 shinyUI(
   bootstrapPage(
     title = "DSM2 Map",
@@ -17,9 +16,9 @@ shinyUI(
                                 choices = c("", sort(nll$NNUM)), selected = "", options = list(`live-search` = TRUE, size = 10)),
                     pickerInput(inputId = "selected_channel", label = "Selected channel", 
                                 choices = c("", sort(cll$channel_nu)), selected = "", options = list(`live-search` = TRUE, size = 10)),
-                    textOutput("upNode"),
-                    textOutput("downNode")
-
+                    conditionalPanel(condition = 'input.selected_channel != ""',
+                                     HTML(paste("Upstream node of selected", "channel is shown in red.", sep="<br/>"))
+                    )
                   )
     )
   )

@@ -1,30 +1,8 @@
 shinyServer(function(input, output, session) {
   
-  selChannelNodes <- reactive({
-    req(input$selected_channel)
-    d = filter(channel_df, chan_no == input$selected_channel)
-    c("up" = d[["upnode"]], "down" = d[["downnode"]])
-  })
-  
-  # toyed around with the idea of adding labels to map to indicate up and down nodes (rather than displaying text in the panel)
-  # but didn't want to deal with complication of another level of groups and layers
-  output$upNode <- renderText({
-    paste("Upstream node:", selChannelNodes()[["up"]])
-  })
-  
-  output$downNode <- renderText({
-    paste("Downstream node:", selChannelNodes()[["down"]])
-  })
-  
   output$Map = renderLeaflet({
     leaflet() %>%
-      setView(lng = -121.56, lat = 38.15, zoom = 10)
-  })
-  
-  observeEvent(input$map_back,{
-    delta.map = leafletProxy("Map", session) %>%
-      addProviderTiles(input$map_back) %>%
-      clearShapes() %>%
+      setView(lng = -121.56, lat = 38.15, zoom = 10) %>%
       addPolylines(data = flowlines, 
                    color = "darkgreen", 
                    weight = 6, 
@@ -39,96 +17,51 @@ shinyServer(function(input, output, session) {
                  layerId = ~NNUM)
   })
   
-  # highlight selected channel and node
-  chan_sel <- function(map, channel){
-    addPolylines(map,
-                 data = subset(flowlines, channel_nu == channel),
-                 color = "#FDE725FF",
-                 weight = 8,
-                 opacity = 0.95,
-                 group = "channels",
-                 layerId = "SelectedChannel")
-  }
+  proxyMap = leafletProxy("Map")
   
-  node_sel <- function(map, node){
-    addCircles(map,
-               data = subset(nodes, NNUM == node),
-               color = "#FDE725FF",
-               radius = 80,
-               opacity = 0.95,
-               fillOpacity = 0.95,
-               group = "nodes",
-               layerId = "SelectedNode")
-  }
-  
-  # update the location selectInput on map clicks
-  observeEvent(input$Map_shape_click, {
-    p <- input$Map_shape_click
-    if(!is.null(p$id)){
-      if (p$group == "channels"){
-        if (p$id != "SelectedChannel"){  # 'SelectedChannel' layer placed on top of channel layer; don't want to update when 'Channel' layer clicked
-          if(is.null(input$selected_channel) || input$selected_channel != p$id){
-            updateSelectInput(session, "selected_channel", selected = p$id)
-          }
-        }else{
-          updateSelectInput(session, "selected_channel", selected = "")
-        }
-      }else{
-        if (p$id != "SelectedNode"){ 
-          if(is.null(input$selected_node) || input$selected_node != p$id){
-            updateSelectInput(session, "selected_node", selected = p$id)
-          }
-        }else{
-          updateSelectInput(session, "selected_node", selected = "")
-        }
-      }
-    }
+  observeEvent(input$map_back,{
+    proxyMap %>% addProviderTiles(input$map_back) 
   })
   
-  # update the map markers and view on map clicks
   observeEvent(input$Map_shape_click, {
+    # SelectedChannel and SelectedNode are used to indicate that the user has clicked on a feature that is currently selected
+    # app responds by setting dropdown menu to empty which triggers removal of the selected line or circle
+    # if the user clicks on an unselected channel or node, then the channel or node number are returned as the layer id (i.e., p$id)
     p <- input$Map_shape_click
-    proxy <- leafletProxy("Map")
-    if (p$group == "channels"){
-      if(p$id == "SelectedChannel"){
-        proxy %>% removeShape(layerId="SelectedChannel")
-      } else {
-        proxy %>% setView(lng=p$lng, lat=p$lat, input$Map_zoom) %>% chan_sel(p$id)
-      }
+    req(p$id)
+    select_input = case_when( # select input that will be updated
+      p$group == "channels" ~ "selected_channel",
+      TRUE                  ~ "selected_node"
+    )
+    if (p$id %in% c("SelectedChannel", "SelectedNode", "UpNode")){
+      new_value = ""      # used in updateSelectInput below
+      proxyMap %>% removeShape(layerId = p$id)
     }else{
-      if(p$id == "SelectedNode"){
-        proxy %>% removeShape(layerId="SelectedNode")
-      } else {
-        proxy %>% setView(lng=p$lng, lat=p$lat, input$Map_zoom) %>% node_sel(p$id)
-      }
-    }
+      new_value = p$id
+      proxyMap %>% setView(lng=p$lng, lat=p$lat, input$Map_zoom) %>% mark_selected(p$group, p$id)
+    } 
+    updateSelectInput(session, select_input, selected = new_value)  # update the location selectInput on map clicks
   })
   
-  # update the map markers and view on location when selected channel changes
+  # update the map markers and view when selected channel changes
   observeEvent(input$selected_channel, {
-    p <- input$Map_shape_click
-    p2 <- filter(cll, channel_nu == input$selected_channel)
-    proxy <- leafletProxy("Map")
-    if(nrow(p2)==0){  
-      proxy %>% removeShape(layerId = "SelectedChannel")
-    } else if(length(p$id) && input$selected_channel != p$id){    # length(p$id) evaluated as 0 or 1, which is interpreted as TRUE/FALSE
-      proxy %>% setView(lng = p2$lon, lat = p2$lat, input$Map_zoom) %>% chan_sel(input$selected_channel)
-    } else if(!length(p$id)){
-      proxy %>% setView(lng = p2$lon, lat = p2$lat, input$Map_zoom) %>% chan_sel(input$selected_channel)
+    cll_sub <- filter(cll, channel_nu == input$selected_channel)
+    upnode <- filter(channel_df, chan_no == input$selected_channel)[["upnode"]]
+    if(nrow(cll_sub) == 0){  
+      proxyMap %>% removeShape(layerId = "SelectedChannel") %>% removeShape(layerId = "UpNode")
+    }else{
+      proxyMap %>% setView(lng = cll_sub$lon, lat = cll_sub$lat, input$Map_zoom) %>% mark_selected("channels", input$selected_channel, upnode)
     }
   })
   
   # update the map markers and view on location when selected node changes
   observeEvent(input$selected_node, {
     p <- input$Map_shape_click
-    p2 <- filter(nll, NNUM == input$selected_node)
-    proxy <- leafletProxy("Map")
-    if(nrow(p2)==0){  
-      proxy %>% removeShape(layerId = "SelectedNode")
-    } else if(length(p$id) && input$selected_node != p$id){    # length(p$id) evaluated as 0 or 1, which is interpreted as TRUE/FALSE
-      proxy %>% setView(lng = p2$lon, lat = p2$lat, input$Map_zoom) %>% node_sel(input$selected_node)
-    } else if(!length(p$id)){
-      proxy %>% setView(lng = p2$lon, lat = p2$lat, input$Map_zoom) %>% node_sel(input$selected_node)
+    nll_sub <- filter(nll, NNUM == input$selected_node)
+    if(nrow(nll_sub) == 0){  
+      proxyMap %>% removeShape(layerId = "SelectedNode")
+    }else{
+      proxyMap %>% setView(lng = nll_sub$lon, lat = nll_sub$lat, input$Map_zoom) %>% mark_selected("nodes", input$selected_node)
     }
   })
   
