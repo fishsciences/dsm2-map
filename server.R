@@ -10,11 +10,18 @@ shinyServer(function(input, output, session) {
                    layerId = ~channel_nu) %>%
       addCircles(data = nodes, 
                  color = "black", 
-                 radius = 60, 
+                 radius = radius,
                  opacity = 0.95,
-                 fillOpacity = 0.95,
+                 fillOpacity = fill_opacity,
                  group = "nodes",
-                 layerId = ~NNUM)
+                 layerId = ~NNUM) %>% 
+      addCircles(data = stations, 
+                 color = "saddlebrown", 
+                 radius = radius,
+                 opacity = 0.95,
+                 fillOpacity = fill_opacity,
+                 group = "stations",
+                 layerId = ~RKI)
   })
   
   proxyMap = leafletProxy("Map")
@@ -31,9 +38,10 @@ shinyServer(function(input, output, session) {
     req(p$id)
     select_input = case_when( # select input that will be updated
       p$group == "channels" ~ "selected_channel",
+      p$group == "stations" ~ "selected_station",
       TRUE                  ~ "selected_node"
     )
-    if (p$id %in% c("SelectedChannel", "SelectedNode", "UpNode")){
+    if (p$id %in% c("SelectedChannel", "SelectedStation", "SelectedNode", "UpNode")){
       new_value = ""      # used in updateSelectInput below
       proxyMap %>% removeShape(layerId = p$id)
     }else{
@@ -46,11 +54,11 @@ shinyServer(function(input, output, session) {
   # update the map markers and view when selected channel changes
   observeEvent(input$selected_channel, {
     cll_sub <- filter(cll, channel_nu == input$selected_channel)
-    upnode <- filter(channel_df, chan_no == input$selected_channel)[["upnode"]]
+    up_node <- filter(flowlines@data, channel_nu == input$selected_channel)[["up_node"]]
     if(nrow(cll_sub) == 0){  
       proxyMap %>% removeShape(layerId = "SelectedChannel") %>% removeShape(layerId = "UpNode")
     }else{
-      proxyMap %>% setView(lng = cll_sub$lon, lat = cll_sub$lat, input$Map_zoom) %>% mark_selected("channels", input$selected_channel, upnode)
+      proxyMap %>% setView(lng = cll_sub$lon, lat = cll_sub$lat, input$Map_zoom) %>% mark_selected("channels", input$selected_channel, up_node)
     }
   })
   
@@ -65,9 +73,17 @@ shinyServer(function(input, output, session) {
     }
   })
   
+  # update the map markers and view on location when selected node changes
+  observeEvent(input$selected_station, {
+    p <- input$Map_shape_click
+    sll_sub <- filter(sll, RKI == input$selected_station)
+    if(nrow(sll_sub) == 0){  
+      proxyMap %>% removeShape(layerId = "SelectedStation")
+    }else{
+      proxyMap %>% setView(lng = sll_sub$lon, lat = sll_sub$lat, input$Map_zoom) %>% mark_selected("stations", input$selected_station)
+    }
+  })
+  
 })
-
-
-
 
 
