@@ -21,14 +21,18 @@ shinyServer(function(input, output, session) {
                  opacity = 0.95,
                  fillOpacity = fill_opacity,
                  group = "stations",
-                 layerId = ~RKI)
+                 layerId = ~RKI) %>% 
+      addProviderTiles(providers$OpenStreetMap.BlackAndWhite, group = "Open Street Map") %>%
+      addProviderTiles(providers$Esri.WorldTopoMap, group = "ESRI World Topo Map") %>%
+      addProviderTiles(providers$Esri.WorldImagery, group = "ESRI World Imagery") %>%
+      addLayersControl(
+        baseGroups = c("ESRI World Topo Map", "ESRI World Imagery", "Open Street Map"),
+        position = c("topleft"),
+        options = layersControlOptions(collapsed = TRUE)
+      )
   })
   
   proxyMap = leafletProxy("Map")
-  
-  observeEvent(input$map_back,{
-    proxyMap %>% addProviderTiles(input$map_back) 
-  })
   
   observeEvent(input$Map_shape_click, {
     # SelectedChannel and SelectedNode are used to indicate that the user has clicked on a feature that is currently selected

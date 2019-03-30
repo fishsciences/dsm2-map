@@ -1,4 +1,4 @@
-![](docs/img/screenshot.png)
+![DSM2 Interactive Map](https://gfycat.com/DefensiveResponsibleConure)
 
 # DSM2 Interactive Map
 

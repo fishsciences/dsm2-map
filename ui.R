@@ -7,11 +7,6 @@ shinyUI(
     leafletOutput('Map', width = "100%", height = "100%"),
     absolutePanel(top = 10, right = 20, 
                   wellPanel(
-                    selectInput(inputId = "map_back", label = "Background map",
-                                choices = c("BlackAndWhite" = "OpenStreetMap.BlackAndWhite",
-                                            "WorldTopoMap" = "Esri.WorldTopoMap",
-                                            "WorldImagery" = "Esri.WorldImagery"),
-                                selected = "Esri.WorldTopoMap"),
                     pickerInput(inputId = "selected_station", label = "Selected station", 
                                 choices = c("", sort(sll$RKI)), selected = "", options = list(`live-search` = TRUE, size = 10)),
                     pickerInput(inputId = "selected_node", label = "Selected node", 
