@@ -1,4 +1,4 @@
-![DSM2 Interactive Map](https://thumbs.gfycat.com/DefensiveResponsibleConure-size_restricted.gif)
+![](docs/img/screenshot.png)
 
 # DSM2 Interactive Map
 
