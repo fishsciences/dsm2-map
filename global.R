@@ -4,8 +4,10 @@ library(leaflet)
 library(rgdal)
 library(dplyr)
 
-stations = readOGR(dsn = "./shapefiles", layer = "Stations_EPSG_4326") %>% 
-  subset(!is.na(RKI) & !(!is.na(Alias) & RKI %in% c("RSAC075", "RSAC092", "RSAN007"))) # a few stations have duplicate entries; Alias column separates those 3 stations to remove duplicate RKIs
+stations = readOGR(dsn = "./shapefiles", layer = "Stations_EPSG_4326") %>%
+  subset(!is.na(RKI) &
+           !(!is.na(Alias) &
+               RKI %in% c("RSAC075", "RSAC092", "RSAN007"))) # a few stations have duplicate entries; Alias column separates those 3 stations to remove duplicate RKIs
 sll = stations@data %>% rename(lon = xcoord, lat = ycoord) %>% mutate(RKI = as.character(RKI))
 nodes = readOGR(dsn = "./shapefiles", layer = "Nodes_EPSG_4326")
 nll = nodes@data %>% rename(lon = X, lat = Y)
@@ -32,45 +34,52 @@ fill_opacity = 0.7
 # write.csv(nad, "ChannelLatLon.csv", row.names = FALSE)
 
 # function to highlight selected channel or node
-mark_selected <- function(map, group_name, layer_id, up_node = NULL){
-  if (group_name == "channels"){
-    addPolylines(map,
-                 data = subset(flowlines, channel_nu == layer_id),
-                 color = "#FDE725FF",
-                 weight = 8,
-                 opacity = 0.95,
-                 group = group_name,
-                 layerId = "SelectedChannel") %>% 
-      addCircles(data = subset(nodes, NNUM == up_node),
-                 color = "red",
-                 radius = radius,
-                 opacity = 0.95,
-                 fillOpacity = fill_opacity,
-                 group = group_name,
-                 layerId = "UpNode")
+mark_selected <-
+  function(map, group_name, layer_id, up_node = NULL) {
+    if (group_name == "channels") {
+      addPolylines(
+        map,
+        data = subset(flowlines, channel_nu == layer_id),
+        color = "#FDE725FF",
+        weight = 8,
+        opacity = 0.95,
+        group = group_name,
+        layerId = "SelectedChannel"
+      ) %>%
+        addCircles(
+          data = subset(nodes, NNUM == up_node),
+          color = "red",
+          radius = radius,
+          opacity = 0.95,
+          fillOpacity = fill_opacity,
+          group = group_name,
+          layerId = "UpNode"
+        )
+    }
+    if (group_name == "nodes") {
+      addCircles(
+        map,
+        data = subset(nodes, NNUM == layer_id),
+        color = "#FDE725FF",
+        radius = radius,
+        opacity = 0.95,
+        fillColor = "black",
+        fillOpacity = fill_opacity,
+        group = group_name,
+        layerId = "SelectedNode"
+      )
+    }
+    if (group_name == "stations") {
+      addCircles(
+        map,
+        data = subset(stations, RKI == layer_id),
+        color = "#FDE725FF",
+        radius = radius,
+        opacity = 0.95,
+        fillColor = "saddlebrown",
+        fillOpacity = fill_opacity,
+        group = group_name,
+        layerId = "SelectedStation"
+      )
+    }
   }
-  if (group_name == "nodes"){
-    addCircles(map,
-               data = subset(nodes, NNUM == layer_id),
-               color = "#FDE725FF",
-               radius = radius,
-               opacity = 0.95,
-               fillColor = "black",
-               fillOpacity = fill_opacity,
-               group = group_name,
-               layerId = "SelectedNode")
-  }
-  if (group_name == "stations"){
-    addCircles(map,
-               data = subset(stations, RKI == layer_id),
-               color = "#FDE725FF",
-               radius = radius,
-               opacity = 0.95,
-               fillColor = "saddlebrown",
-               fillOpacity = fill_opacity,
-               group = group_name,
-               layerId = "SelectedStation")
-  }
-}
-
-
