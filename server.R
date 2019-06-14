@@ -29,9 +29,9 @@ shinyServer(function(input, output, session) {
         group = "stations",
         layerId = ~ RKI
       ) %>%
-      addProviderTiles(providers$OpenStreetMap.BlackAndWhite, group = "Open Street Map") %>%
-      addProviderTiles(providers$Esri.WorldTopoMap, group = "ESRI World Topo Map") %>%
-      addProviderTiles(providers$Esri.WorldImagery, group = "ESRI World Imagery") %>%
+      addProviderTiles("OpenStreetMap.BlackAndWhite", group = "Open Street Map") %>%
+      addProviderTiles("Esri.WorldTopoMap", group = "ESRI World Topo Map") %>%
+      addProviderTiles("Esri.WorldImagery", group = "ESRI World Imagery") %>%
       addLayersControl(
         baseGroups = c("ESRI World Topo Map", "ESRI World Imagery", "Open Street Map"),
         position = c("topleft"),
